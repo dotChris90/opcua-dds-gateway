@@ -1,0 +1,90 @@
+<dds>
+  <ddsopcua_gateway name="OMG_Shape_Gateway">
+    <!-- Connection to OPC UA Server (§10.3.1.2) -->
+    <opcua_connection name="MyServerConnection" server_endpoint_url="opc.tcp://127.0.0.1:4840">
+      <timeout>5000</timeout>
+    </opcua_connection>
+
+    <!-- Embedded OPC UA Server (§10.3.2.2) -->
+    <opcua_server name="MyServer" port="4840">
+      <endpoint_url>opc.tcp://0.0.0.0:4840</endpoint_url>
+    </opcua_server>
+
+    <!-- DDS DomainParticipant (§10.3.1.2) -->
+    <domain_participant name="DomainParticipant0" domain_id="0">
+      <register_type name="ShapeType" type_ref="ShapeType"/>
+    </domain_participant>
+
+    <!-- Chapter 9: DDS to OPC UA Bridge (§10.3.2.3) -->
+    <dds_to_opcua_bridge name="MyDds2OpcUaBridge" opcua_server_ref="MyServer">
+      <domain domain_participant_ref="DomainParticipant0">
+        <topic name="Circle">
+          <registered_type_name>ShapeType</registered_type_name>
+          <write_access>
+            <enabled>true</enabled>
+            <preregistered_instances>
+              <instance name="BLUE">
+                <field name="color">BLUE</field>
+                <field name="x">100</field>
+                <field name="y">150</field>
+                <field name="shapesize">30</field>
+              </instance>
+              <instance name="RED">
+                <field name="color">RED</field>
+                <field name="x">50</field>
+                <field name="y">80</field>
+                <field name="shapesize">25</field>
+              </instance>
+            </preregistered_instances>
+          </write_access>
+          <read_access>
+            <enabled>true</enabled>
+          </read_access>
+        </topic>
+      </domain>
+    </dds_to_opcua_bridge>
+
+    <!-- Chapter 8: OPC UA to DDS Bridge (§10.3.1.3) -->
+    <opcua_to_dds_bridge name="MyOpcUa2DdsBridge">
+      <subscription name="MySubscription">
+        <opcua_input name="MyInput" opcua_connection_ref="MyServerConnection">
+          <subscription_protocol>
+            <requested_publishing_interval>100</requested_publishing_interval>
+            <requested_lifetime_count>3000</requested_lifetime_count>
+            <requested_max_keep_alive_count>1000</requested_max_keep_alive_count>
+          </subscription_protocol>
+          <monitored_items>
+            <data_item name="SquareX">
+              <node_id>
+                <namespace_index>1</namespace_index>
+                <string_identifier>Circle.Instance_BLUE.x</string_identifier>
+              </node_id>
+              <attribute_id>VALUE</attribute_id>
+              <sampling_interval>50</sampling_interval>
+            </data_item>
+          </monitored_items>
+        </opcua_input>
+        <dds_output name="ShapePublication" domain_participant_ref="DomainParticipant0">
+          <topic_name>Square</topic_name>
+          <registered_type_name>ShapeType</registered_type_name>
+        </dds_output>
+        <mapping>
+          <assignment dds_output_ref="ShapePublication" opcua_input_ref="MyInput">
+            <field dds_output_field_ref="color">
+              <value>GREEN</value>
+            </field>
+            <field dds_output_field_ref="x">
+              <data_item data_item_ref="SquareX"/>
+            </field>
+            <field dds_output_field_ref="y">
+              <value>200</value>
+            </field>
+            <field dds_output_field_ref="shapesize">
+              <value>40</value>
+            </field>
+          </assignment>
+        </mapping>
+      </subscription>
+    </opcua_to_dds_bridge>
+  </ddsopcua_gateway>
+</dds>

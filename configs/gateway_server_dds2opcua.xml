@@ -1,0 +1,43 @@
+<dds>
+  <ddsopcua_gateway name="UaExpert_DDS_Bridge_Gateway">
+    <!-- Embedded OPC UA Server for UaExpert (§10.3.2.2) -->
+    <opcua_server name="MyServer" port="4840">
+      <endpoint_url>opc.tcp://0.0.0.0:4840</endpoint_url>
+    </opcua_server>
+
+    <!-- DDS DomainParticipant 0 (§10.3.1.2) -->
+    <domain_participant name="DomainParticipant0" domain_id="0">
+      <register_type name="ShapeType" type_ref="ShapeType"/>
+    </domain_participant>
+
+    <!-- Chapter 9: DDS to OPC UA Bridge (§10.3.2.3) -->
+    <!-- Exposes DDS Global Data Space into OPC UA AddressSpace -->
+    <dds_to_opcua_bridge name="MyDds2OpcUaBridge" opcua_server_ref="MyServer">
+      <domain domain_participant_ref="DomainParticipant0">
+        <topic name="Circle">
+          <registered_type_name>ShapeType</registered_type_name>
+          <write_access>
+            <enabled>true</enabled>
+            <preregistered_instances>
+              <instance name="BLUE">
+                <field name="color">BLUE</field>
+                <field name="x">100</field>
+                <field name="y">150</field>
+                <field name="shapesize">30</field>
+              </instance>
+              <instance name="RED">
+                <field name="color">RED</field>
+                <field name="x">50</field>
+                <field name="y">80</field>
+                <field name="shapesize">25</field>
+              </instance>
+            </preregistered_instances>
+          </write_access>
+          <read_access>
+            <enabled>true</enabled>
+          </read_access>
+        </topic>
+      </domain>
+    </dds_to_opcua_bridge>
+  </ddsopcua_gateway>
+</dds>
